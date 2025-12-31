@@ -1,6 +1,8 @@
 import os
 import json
 from datetime import datetime, timedelta
+from typing import Optional
+from tzlocal import get_localzone
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -8,6 +10,9 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 SCOPES = ['https://www.googleapis.com/auth/calendar']
+
+def get_system_timezone():
+    return str(get_localzone())
 
 def get_calendar_service():
     """
@@ -42,11 +47,10 @@ def get_calendar_service():
 def add_calendar_event(
     summary: str,
     start_time: str,
-    end_time: str = None,
-    description: str = None,
-    location: str = None,
-    attendees: list = None,
-    timezone: str = 'America/New_York'
+    end_time: Optional[str] = None,
+    description: Optional[str] = None,
+    location: Optional[str] = None,
+    timezone: Optional[str] = None
 ) -> dict:
     """
     Add an event to Google Calendar.
@@ -57,8 +61,7 @@ def add_calendar_event(
         end_time: End time in ISO format. If not provided, defaults to 1 hour after start_time
         description: Event description (optional)
         location: Event location (optional)
-        attendees: List of attendee emails (optional)
-        timezone: Timezone for the event (default: 'America/New_York')
+        timezone: Timezone for the event (default: system timezone)
 
     Returns:
         dict: Created event details including event ID and link
@@ -66,15 +69,17 @@ def add_calendar_event(
     Example:
         add_calendar_event(
             summary="Team Meeting",
-            start_time="2024-01-15T10:00:00",
-            end_time="2024-01-15T11:00:00",
+            start_time="2025-01-15T10:00:00",
+            end_time="2025-01-15T11:00:00",
             description="Discuss Q1 goals",
-            location="Conference Room A",
-            attendees=["colleague@example.com"]
+            location="Conference Room A"
         )
     """
     try:
         service = get_calendar_service()
+
+        if timezone is None:
+            timezone = get_system_timezone()
 
         start_dt = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
 
@@ -100,9 +105,6 @@ def add_calendar_event(
 
         if location:
             event['location'] = location
-
-        if attendees:
-            event['attendees'] = [{'email': email} for email in attendees]
 
         created_event = service.events().insert(calendarId='primary', body=event).execute()
 

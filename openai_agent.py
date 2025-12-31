@@ -1,15 +1,46 @@
 from dotenv import load_dotenv
-from agents import Agent, Runner
+from datetime import datetime
+from tzlocal import get_localzone
+from agents import Agent, Runner, function_tool
 from tools import add_calendar_event
 
-load_dotenv()
+load_dotenv(override=True)
+
+calendar_tool = function_tool(add_calendar_event)
+
+now = datetime.now()
+local_timezone = get_localzone()
+timezone_name = str(local_timezone)
+
+current_date = now.strftime('%Y-%m-%d')
+current_day = now.strftime('%A')
+current_time = now.strftime('%I:%M %p')
+current_datetime = now.strftime('%Y-%m-%d %I:%M %p')
 
 agent = Agent(
     name="Assistant",
-    instructions="You are a helpful assistant with access to Google Calendar. You can help users schedule events and manage their calendar.",
-    tools=[add_calendar_event]
+    model="gpt-5-mini",
+    instructions=f"""
+
+    You are a helpful assistant with access to Google Calendar. You can help users schedule events and manage their calendar.
+
+
+    Here is the current datetime information:
+    - Date: {current_date}
+    - Day of week: {current_day}
+    - Time: {current_time}
+    - Full datetime: {current_datetime}
+    - Timezone: {timezone_name}
+
+    When users mention relative times like "tomorrow", "next week", or "in 2 hours", calculate the exact datetime based on the current information above.
+    Always use ISO format (YYYY-MM-DDTHH:MM:SS) when calling the add_calendar_event function.
+    Use the timezone "{timezone_name}" for all calendar events.
+
+    """,
+    tools=[calendar_tool]
 )
 
 
-result = Runner.run_sync(agent, "Add an event: Work on Timeline from 10pm to 11pm on December 30th 2025.")
+user_query = input("[user]: ")
+result = Runner.run_sync(agent, user_query)
 print(result.final_output)

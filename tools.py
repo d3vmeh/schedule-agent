@@ -2,12 +2,16 @@ import os
 import json
 from datetime import datetime, timedelta
 from typing import Optional
+
 from tzlocal import get_localzone
+
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+
+
 
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 

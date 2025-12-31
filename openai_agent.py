@@ -4,9 +4,10 @@ from tzlocal import get_localzone
 from agents import Agent, Runner, function_tool
 from tools import add_calendar_event
 
+import asyncio
+
 load_dotenv(override=True)
 
-calendar_tool = function_tool(add_calendar_event)
 
 now = datetime.now()
 local_timezone = get_localzone()
@@ -37,10 +38,14 @@ agent = Agent(
     Use the timezone "{timezone_name}" for all calendar events.
 
     """,
-    tools=[calendar_tool]
+    tools=[function_tool(add_calendar_event)]
 )
 
 
-user_query = input("[user]: ")
-result = Runner.run_sync(agent, user_query)
-print(result.final_output)
+async def main():
+    user_query = input("[user]: ")
+    result = await Runner.run(agent, input=user_query)
+    print(result.final_output)
+
+if __name__ == "__main__":
+    asyncio.run(main())

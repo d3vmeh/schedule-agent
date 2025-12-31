@@ -1,46 +1,35 @@
 from dotenv import load_dotenv
-from datetime import datetime
-from tzlocal import get_localzone
-from agents import Agent, Runner, function_tool
-from tools import add_calendar_event
-
+from tools import add_calendar_event, get_time_info
 import asyncio
+
+from agents import Agent, Runner, function_tool
+
 
 load_dotenv(override=True)
 
+prompt = f"""
 
-now = datetime.now()
-local_timezone = get_localzone()
-timezone_name = str(local_timezone)
+    You are a helpful assistant with access to Google Calendar. You can help users schedule events and manage their calendar.
 
-current_date = now.strftime('%Y-%m-%d')
-current_day = now.strftime('%A')
-current_time = now.strftime('%I:%M %p')
-current_datetime = now.strftime('%Y-%m-%d %I:%M %p')
+    {get_time_info()}
+
+    When the user provides information about an event, add that event to their calendar with the exact details provided.
+    If the user omits specifics about a basic property, like the date , it is permissible to use common sense to make an inference there.
+
+    For example, if the user asks: "I'm going to see a movie at 3pm on Tuesday," you may assume the event is for the closest upcoming Tuesday.
+
+    You have access to the following tools to complete the task the user asks you.
+    - add_calendar_event()
+
+    if you make any changes to the user's calendar, include a summary of those changes below.
+    """
 
 agent = Agent(
     name="Assistant",
     model="gpt-5-mini",
-    instructions=f"""
-
-    You are a helpful assistant with access to Google Calendar. You can help users schedule events and manage their calendar.
-
-
-    Here is the current datetime information:
-    - Date: {current_date}
-    - Day of week: {current_day}
-    - Time: {current_time}
-    - Full datetime: {current_datetime}
-    - Timezone: {timezone_name}
-
-    When users mention relative times like "tomorrow", "next week", or "in 2 hours", calculate the exact datetime based on the current information above.
-    Always use ISO format (YYYY-MM-DDTHH:MM:SS) when calling the add_calendar_event function.
-    Use the timezone "{timezone_name}" for all calendar events.
-
-    """,
+    instructions=prompt,
     tools=[function_tool(add_calendar_event)]
 )
-
 
 async def main():
     user_query = input("[user]: ")

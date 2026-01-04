@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 from tools import add_calendar_event, get_time_info
 import asyncio
 
-from agents import Agent, Runner, function_tool
+from agents import Agent, Runner, function_tool, SQLiteSession
 
 
 load_dotenv(override=True)
@@ -31,10 +31,12 @@ agent = Agent(
     tools=[function_tool(add_calendar_event)]
 )
 
+session = SQLiteSession("conversation_memory")
 async def main():
-    user_query = input("[user]: ")
-    result = await Runner.run(agent, input=user_query)
-    print(result.final_output)
+    while True:
+        user_query = input("[user]: ")
+        result = await Runner.run(agent, input=user_query, session=session)
+        print(result.final_output)
 
 if __name__ == "__main__":
     asyncio.run(main())

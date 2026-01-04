@@ -4,4 +4,3 @@ __pycache__/
 .env
 credentials.json
 token.json
-conversation_memory

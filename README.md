@@ -25,7 +25,7 @@ The agents can understand natural language requests and automatically create cal
 
 1. Clone this repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/d3vmeh/schedule-agent
 cd schedule-agent
 ```
 

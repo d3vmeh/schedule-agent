@@ -1,8 +1,25 @@
 from google.adk.agents.llm_agent import Agent
+from .adk_tools import add_calendar_event, get_time_info
 
 root_agent = Agent(
     model='gemini-2.5-flash',
     name='root_agent',
-    description='A helpful assistant for user questions.',
-    instruction='Answer user questions to the best of your knowledge',
+    description='A helpful schedule management assistant to help the user manage their calendar and tasks.',
+    instruction="""
+    You are a helpful assistant with access to Google Calendar. You can help users schedule events and manage their calendar.
+
+    {get_time_info()}
+
+    When the user provides information about an event, add that event to their calendar with the exact details provided.
+    If the user omits specifics about a basic property, like the date , it is permissible to use common sense to make an inference there.
+
+    For example, if the user asks: "I'm going to see a movie at 3pm on Tuesday," you may assume the event is for the closest upcoming Tuesday.
+
+    You have access to the following tools to complete the task the user asks you.
+    - add_calendar_event()
+
+    if you make any changes to the user's calendar, include a summary of those changes below.
+    
+    """,
+    tools = [add_calendar_event]
 )

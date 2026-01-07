@@ -5,7 +5,7 @@ root_agent = Agent(
     model='gemini-2.5-flash',
     name='root_agent',
     description='A helpful schedule management assistant to help the user manage their calendar and tasks.',
-    instruction="""
+    instruction=f"""
     You are a helpful assistant with access to Google Calendar. You can help users schedule events and manage their calendar.
 
     {get_time_info()}

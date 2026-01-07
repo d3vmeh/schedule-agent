@@ -1,6 +1,10 @@
 # Schedule Agent
 
-An AI-powered scheduling assistant that integrates with Google Calendar using OpenAI's Agents SDK. The agent can understand natural language requests and automatically create calendar events with proper timezone handling.
+An AI-powered scheduling assistant that integrates with Google Calendar. The project includes two implementations:
+- **OpenAI SDK Agent**: Using OpenAI's Agents SDK
+- **Google ADK Agent**: Using Google's Agentic Development Kit (ADK)
+
+The agents can understand natural language requests and automatically create calendar events with proper timezone handling.
 
 ## Features
 
@@ -14,8 +18,8 @@ An AI-powered scheduling assistant that integrates with Google Calendar using Op
 ## Prerequisites
 
 - Python 3.8 or higher
-- Google Cloud Console account
-- OpenAI API key
+- OpenAI API key (for OpenAI SDK agent)
+- Google Gemini API Key (for Google ADK agent)
 
 ## Installation
 
@@ -35,20 +39,42 @@ pip install -r requirements.txt
    - Create a new project or select an existing one
    - Enable the Google Calendar API
    - Create OAuth 2.0 credentials (Desktop application)
-   - Download the credentials and save as `credentials.json` in the project root
+   - Download the credentials and save as `credentials.json` in the appropriate folder:
+     - `openai_sdk_agent/credentials.json` for OpenAI SDK agent
+     - `google_adk_agent/credentials.json` for Google ADK agent
 
 4. Set up environment variables:
-   - Create a `.env` file in the project root
+
+   **For OpenAI SDK Agent:**
+   - Create a `.env` file in `openai_sdk_agent/`
    - Add your OpenAI API key:
      ```
      OPENAI_API_KEY=your_api_key_here
      ```
 
+   **For Google ADK Agent:**
+   - Create a `.env` file in `google_adk_agent/`
+   - Add your API key:
+     ```
+     GOOGLE_GENAI_USE_VERTEXAI=0
+     GOOGLE_API_KEY=your_api_key_here
+     ```
+
 ## Usage
 
-Run the agent:
+### OpenAI SDK Agent
+
+Run the OpenAI SDK agent:
 ```bash
+cd openai_sdk_agent
 python openai_agent.py
+```
+
+### Google ADK Agent
+
+Run the Google ADK agent (must be in the parent directory):
+```bash
+adk run google_adk_agent
 ```
 
 The agent will prompt you for input. You can make requests like:

@@ -91,3 +91,9 @@ On first run, the application will open a browser window for Google OAuth author
 3. It calls the `add_calendar_event` function with properly formatted datetime strings
 4. The function authenticates with Google Calendar (using saved credentials or OAuth flow)
 5. The event is created and a confirmation is returned
+
+## Next Steps
+
+
+- Implement multi-agent framework in ADK agent (EditorAgent, ReaderAgent)
+- Setup tool for sharing calendar invites via email

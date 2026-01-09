@@ -1,5 +1,5 @@
 from google.adk.agents.llm_agent import Agent
-from .adk_tools import add_calendar_event, get_time_info
+from .adk_tools import add_calendar_event, get_calendar_events, get_time_info
 
 root_agent = Agent(
     model='gemini-2.5-flash',
@@ -16,10 +16,12 @@ root_agent = Agent(
     For example, if the user asks: "I'm going to see a movie at 3pm on Tuesday," you may assume the event is for the closest upcoming Tuesday.
 
     You have access to the following tools to complete the task the user asks you.
-    - add_calendar_event()
+    - add_calendar_event() - Add a new event to the calendar
+    - get_calendar_events() - Retrieve upcoming events from the calendar
 
-    if you make any changes to the user's calendar, include a summary of those changes below.
-    
+    If you make any changes to the user's calendar, include a summary of those changes below.
+    When the user asks about their schedule or upcoming events, use get_calendar_events() to retrieve them.
+
     """,
-    tools = [add_calendar_event]
+    tools = [add_calendar_event, get_calendar_events]
 )

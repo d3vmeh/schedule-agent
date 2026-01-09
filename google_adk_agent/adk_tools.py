@@ -51,6 +51,113 @@ def get_calendar_service():
     return build('calendar', 'v3', credentials=creds)
 
 # Agent tools
+def get_calendar_events(
+    time_min: Optional[str] = None,
+    time_max: Optional[str] = None,
+    max_results: int = 10,
+    timezone: Optional[str] = None
+) -> dict:
+    """
+    Retrieve events from Google Calendar.
+
+    Args:
+        time_min: Start of time range in ISO format (e.g., '2025-01-15T00:00:00').
+                  If not provided, defaults to current time.
+        time_max: End of time range in ISO format (e.g., '2025-01-22T23:59:59').
+                  If not provided, retrieves events indefinitely into the future.
+        max_results: Maximum number of events to return (default: 10, max: 2500)
+        timezone: Timezone for the query (default: system timezone)
+
+    Returns:
+        dict: Dictionary containing:
+            - success: Boolean indicating if the request was successful
+            - events: List of events with their details
+            - count: Number of events returned
+
+    Example:
+        # Get next 10 upcoming events
+        get_calendar_events()
+
+        # Get events for a specific day
+        get_calendar_events(
+            time_min="2025-01-15T00:00:00",
+            time_max="2025-01-15T23:59:59"
+        )
+    """
+    try:
+        service = get_calendar_service()
+
+        if timezone is None:
+            timezone = get_system_timezone()
+
+        # Default to current time if not specified
+        if time_min is None:
+            time_min = datetime.now().isoformat()
+
+        # Ensure datetime strings are in RFC3339 format with timezone
+        # If they don't already have timezone info, add 'Z' for UTC or parse with timezone
+        if time_min and not time_min.endswith('Z') and '+' not in time_min and time_min.count('-') == 2:
+            # Parse the datetime and add timezone
+            dt = datetime.fromisoformat(time_min.replace('Z', '+00:00'))
+            time_min = dt.isoformat() + 'Z' if dt.tzinfo is None else dt.isoformat()
+
+        if time_max and not time_max.endswith('Z') and '+' not in time_max and time_max.count('-') == 2:
+            # Parse the datetime and add timezone
+            dt = datetime.fromisoformat(time_max.replace('Z', '+00:00'))
+            time_max = dt.isoformat() + 'Z' if dt.tzinfo is None else dt.isoformat()
+
+        events_result = service.events().list(
+            calendarId='primary',
+            timeMin=time_min,
+            timeMax=time_max,
+            maxResults=max_results,
+            singleEvents=True,
+            orderBy='startTime'
+        ).execute()
+
+        events = events_result.get('items', [])
+
+        # Formatting event results
+        formatted_events = []
+        for event in events:
+            formatted_event = {
+                'id': event['id'],
+                'summary': event.get('summary', 'No title'),
+                'start': event['start'].get('dateTime', event['start'].get('date')),
+                'end': event['end'].get('dateTime', event['end'].get('date')),
+            }
+
+            if 'description' in event:
+                formatted_event['description'] = event['description']
+            if 'location' in event:
+                formatted_event['location'] = event['location']
+            if 'htmlLink' in event:
+                formatted_event['link'] = event['htmlLink']
+
+            formatted_events.append(formatted_event)
+
+        return {
+            'success': True,
+            'events': formatted_events,
+            'count': len(formatted_events)
+        }
+
+    except HttpError as error:
+        return {
+            'success': False,
+            'error': f'An error occurred: {error}',
+            'events': [],
+            'count': 0
+        }
+    except Exception as e:
+        return {
+            'success': False,
+            'error': f'An error occurred: {str(e)}',
+            'events': [],
+            'count': 0
+        }
+
+
 def add_calendar_event(
     summary: str,
     start_time: str,

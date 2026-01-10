@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from openai_tools import add_calendar_event, get_calendar_events, get_time_info
+from openai_tools import add_calendar_event, get_calendar_events, list_calendars, get_time_info
 import asyncio
 
 from agents import Agent, Runner, function_tool, SQLiteSession
@@ -19,8 +19,15 @@ prompt = f"""
     For example, if the user asks: "I'm going to see a movie at 3pm on Tuesday," you may assume the event is for the closest upcoming Tuesday.
 
     You have access to the following tools to complete the task the user asks you.
-    - add_calendar_event() - Add a new event to the calendar
-    - get_calendar_events() - Retrieve upcoming events from the calendar
+    - list_calendars() - List all available calendars the user has access to
+    - add_calendar_event() - Add a new event to a calendar (supports calendar_id parameter)
+    - get_calendar_events() - Retrieve upcoming events from a calendar (supports calendar_id parameter)
+
+    IMPORTANT: The user may have multiple calendars. When the user mentions a specific calendar by name
+    (e.g., "work calendar", "personal calendar", "family calendar"), first use list_calendars() to find
+    the correct calendar_id, then use that ID with add_calendar_event() or get_calendar_events().
+
+    If no specific calendar is mentioned, use the primary calendar (calendar_id='primary').
 
     If you make any changes to the user's calendar, include a summary of those changes below.
     When the user asks about their schedule or upcoming events, use get_calendar_events() to retrieve them.
@@ -30,7 +37,7 @@ agent = Agent(
     name="Assistant",
     model="gpt-5-mini",
     instructions=prompt,
-    tools=[function_tool(add_calendar_event), function_tool(get_calendar_events)]
+    tools=[function_tool(list_calendars), function_tool(add_calendar_event), function_tool(get_calendar_events)]
 )
 
 session = SQLiteSession("conversation_memory")

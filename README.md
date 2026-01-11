@@ -74,7 +74,7 @@ python openai_agent.py
 
 Run the Google ADK agent (must be in the parent directory):
 ```bash
-adk run google_adk_agent
+adk web
 ```
 
 The agent will prompt you for input. You can make requests like:

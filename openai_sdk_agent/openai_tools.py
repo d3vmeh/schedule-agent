@@ -214,6 +214,55 @@ def get_calendar_service():
 
     return build('calendar', 'v3', credentials=creds)
 
+def delete_calendar_event(
+    event_id: str,
+    calendar_id: str = 'primary'
+) -> dict:
+    """
+    Delete an event from Google Calendar.
+
+    Args:
+        event_id: The ID of the event to delete (required). Can be obtained from get_calendar_events().
+        calendar_id: Calendar ID where the event exists (default: 'primary')
+
+    Returns:
+        dict: Dictionary containing:
+            - success: Boolean indicating if the deletion was successful
+            - event_id: The ID of the deleted event
+            - calendar_id: The calendar from which the event was deleted
+            - message: Success or error message
+
+    Example:
+        delete_calendar_event(event_id="abc123def456")
+    """
+    try:
+        service = get_calendar_service()
+
+        service.events().delete(calendarId=calendar_id, eventId=event_id).execute()
+
+        return {
+            'success': True,
+            'event_id': event_id,
+            'calendar_id': calendar_id,
+            'message': f'Event successfully deleted from calendar'
+        }
+
+    except HttpError as error:
+        return {
+            'success': False,
+            'event_id': event_id,
+            'calendar_id': calendar_id,
+            'error': f'An error occurred: {error}'
+        }
+    except Exception as e:
+        return {
+            'success': False,
+            'event_id': event_id,
+            'calendar_id': calendar_id,
+            'error': f'An error occurred: {str(e)}'
+        }
+
+
 def add_calendar_event(
     summary: str,
     start_time: str,

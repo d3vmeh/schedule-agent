@@ -138,8 +138,8 @@ On first run, the application will open a browser window for Google OAuth author
 Both agents have access to the following calendar management tools:
 
 - **`list_calendars()`** - List all calendars accessible to the user
-- **`get_calendar_events(calendar_id, time_min, time_max, max_results)`** - Retrieve events from a calendar
-- **`add_calendar_event(summary, start_time, calendar_id, end_time, description, location)`** - Add a new event
+- **`get_calendar_events(calendar_id, time_min, time_max, max_results, timezone)`** - Retrieve events from a calendar
+- **`add_calendar_event(summary, start_time, calendar_id, end_time, description, location, timezone)`** - Add a new event
 - **`delete_calendar_event(event_id, calendar_id)`** - Delete an existing event
 
 ## Project Structure

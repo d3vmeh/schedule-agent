@@ -350,6 +350,100 @@ def add_calendar_event(
             'error': f'An error occurred: {str(e)}'
         }
 
+def update_calendar_event(
+    event_id: str,
+    summary: str,
+    start_time: str,
+    calendar_id: str = 'primary',
+    end_time: Optional[str] = None,
+    description: Optional[str] = None,
+    location: Optional[str] = None,
+    timezone: Optional[str] = None
+) -> dict:
+    """
+    Update an existing event in Google Calendar by deleting it and creating a new one.
+
+    Args:
+        event_id: The ID of the event to update (required). Can be obtained from get_calendar_events().
+        summary: Event title/summary (required)
+        start_time: Start time in ISO format (e.g., '2024-01-15T10:00:00')
+        calendar_id: Calendar ID where the event exists (default: 'primary')
+        end_time: End time in ISO format. If not provided, defaults to 1 hour after start_time
+        description: Event description (optional)
+        location: Event location (optional)
+        timezone: Timezone for the event (default: system timezone)
+
+    Returns:
+        dict: Dictionary containing:
+            - success: Boolean indicating if the update was successful
+            - old_event_id: The ID of the deleted event
+            - new_event_id: The ID of the newly created event
+            - event_link: Link to the new event
+            - summary: Event title
+            - start: Event start time
+            - end: Event end time
+            - calendar_id: The calendar where the event was updated
+
+    Example:
+        update_calendar_event(
+            event_id="abc123def456",
+            summary="Updated Team Meeting",
+            start_time="2025-01-15T14:00:00",
+            end_time="2025-01-15T15:00:00",
+            description="Rescheduled meeting",
+            location="Conference Room B"
+        )
+    """
+    try:
+        # First, delete the old event
+        delete_result = delete_calendar_event(event_id=event_id, calendar_id=calendar_id)
+
+        if not delete_result['success']:
+            return {
+                'success': False,
+                'error': f"Failed to delete old event: {delete_result.get('error', 'Unknown error')}",
+                'old_event_id': event_id,
+                'calendar_id': calendar_id
+            }
+
+        # Then, create the new event with updated details
+        create_result = add_calendar_event(
+            summary=summary,
+            start_time=start_time,
+            calendar_id=calendar_id,
+            end_time=end_time,
+            description=description,
+            location=location,
+            timezone=timezone
+        )
+
+        if not create_result['success']:
+            return {
+                'success': False,
+                'error': f"Old event was deleted but failed to create new event: {create_result.get('error', 'Unknown error')}",
+                'old_event_id': event_id,
+                'calendar_id': calendar_id
+            }
+
+        return {
+            'success': True,
+            'old_event_id': event_id,
+            'new_event_id': create_result['event_id'],
+            'event_link': create_result.get('event_link'),
+            'summary': create_result['summary'],
+            'start': create_result['start'],
+            'end': create_result['end'],
+            'calendar_id': calendar_id,
+            'message': 'Event successfully updated'
+        }
+
+    except Exception as e:
+        return {
+            'success': False,
+            'error': f'An error occurred: {str(e)}',
+            'old_event_id': event_id,
+            'calendar_id': calendar_id
+        }
 
 # Helper functions for prompt
 def get_system_timezone():

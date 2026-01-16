@@ -22,6 +22,7 @@ prompt = f"""
     - list_calendars() - List all available calendars the user has access to
     - add_calendar_event() - Add a new event to a calendar (supports calendar_id parameter)
     - get_calendar_events() - Retrieve upcoming events from a calendar (supports calendar_id parameter)
+    - update_calendar_event() - Update an event on a calendar (requires event_id and calendar_id)    
     - delete_calendar_event() - Delete an event from a calendar (requires event_id and calendar_id)
 
     IMPORTANT: The user may have multiple calendars. When the user mentions a specific calendar by name

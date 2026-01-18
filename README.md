@@ -9,10 +9,15 @@ The agents can understand natural language requests and manage your calendar wit
 ## Features
 
 - **Full Calendar Management**
-  - Create, read, and delete calendar events
+  - Create, read, update, and delete calendar events
   - View upcoming events and schedules
   - Support for multiple calendars (personal, work, etc.)
   - List and switch between different calendars
+
+- **Calendar Sharing & Invites**
+  - Invite attendees when creating events
+  - Add attendees to existing events
+  - Automatic email invitations sent to all attendees
 
 - **Natural Language Processing**
   - Automatic timezone detection and handling
@@ -114,6 +119,16 @@ The agents support a wide range of natural language requests:
 - "Add a meeting to my work calendar tomorrow at 3pm"
 - "What's on my personal calendar this weekend?"
 
+**Updating Events:**
+- "Move my 2pm meeting to 3pm"
+- "Change the location of tomorrow's lunch to Central Cafe"
+- "Update the team meeting to include a description"
+
+**Inviting Attendees:**
+- "Schedule a meeting with john@example.com tomorrow at 2pm"
+- "Invite sarah@example.com to my project kickoff"
+- "Add the team (alice@example.com, bob@example.com) to the planning session"
+
 **Deleting Events:**
 - "Delete my 2pm meeting today"
 - "Remove the dentist appointment on Friday"
@@ -128,8 +143,10 @@ On first run, the application will open a browser window for Google OAuth author
 3. The agent determines which calendar operation is needed:
    - `list_calendars()` - Lists all available calendars
    - `get_calendar_events()` - Retrieves events from a specific calendar
-   - `add_calendar_event()` - Creates a new event with properly formatted datetime strings
+   - `add_calendar_event()` - Creates a new event with optional attendees
+   - `update_calendar_event()` - Modifies an existing event
    - `delete_calendar_event()` - Removes an event by its ID
+   - `invite_to_event()` - Adds attendees to an existing event
 4. The function authenticates with Google Calendar (using saved credentials or OAuth flow)
 5. The operation is performed and a confirmation is returned
 
@@ -139,8 +156,10 @@ Both agents have access to the following calendar management tools:
 
 - **`list_calendars()`** - List all calendars accessible to the user
 - **`get_calendar_events(calendar_id, time_min, time_max, max_results, timezone)`** - Retrieve events from a calendar
-- **`add_calendar_event(summary, start_time, calendar_id, end_time, description, location, timezone)`** - Add a new event
+- **`add_calendar_event(summary, start_time, calendar_id, end_time, description, location, timezone, attendees)`** - Add a new event with optional attendees
+- **`update_calendar_event(event_id, summary, start_time, calendar_id, end_time, description, location, timezone)`** - Update an existing event
 - **`delete_calendar_event(event_id, calendar_id)`** - Delete an existing event
+- **`invite_to_event(event_id, attendees, calendar_id)`** - Add attendees to an existing event and send email invitations
 
 ## Project Structure
 
@@ -162,8 +181,6 @@ schedule-agent/
 
 ## Future Enhancements
 
-- Update/modify existing calendar events
-- Sharing calendar invites via email
 - Recurring events support
 - Event reminders and notifications
 - Calendar event search and filtering

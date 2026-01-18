@@ -275,10 +275,11 @@ def add_calendar_event(
     end_time: Optional[str] = None,
     description: Optional[str] = None,
     location: Optional[str] = None,
-    timezone: Optional[str] = None
+    timezone: Optional[str] = None,
+    attendees: Optional[list[str]] = None
 ) -> dict:
     """
-    Add an event to Google Calendar.
+    Add an event to Google Calendar with optional attendees.
 
     Args:
         summary: Event title/summary (required)
@@ -288,9 +289,11 @@ def add_calendar_event(
         description: Event description (optional)
         location: Event location (optional)
         timezone: Timezone for the event (default: system timezone)
+        attendees: List of email addresses to invite to the event (optional).
+                   Attendees will receive email invitations automatically.
 
     Returns:
-        dict: Created event details including event ID and link
+        dict: Created event details including event ID, link, and attendees invited
 
     Example:
         add_calendar_event(
@@ -298,7 +301,8 @@ def add_calendar_event(
             start_time="2025-01-15T10:00:00",
             end_time="2025-01-15T11:00:00",
             description="Discuss Q1 goals",
-            location="Conference Room A"
+            location="Conference Room A",
+            attendees=["colleague@example.com", "manager@example.com"]
         )
     """
     try:
@@ -332,9 +336,16 @@ def add_calendar_event(
         if location:
             event['location'] = location
 
-        created_event = service.events().insert(calendarId=calendar_id, body=event).execute()
+        if attendees:
+            event['attendees'] = [{'email': email} for email in attendees]
 
-        return {
+        created_event = service.events().insert(
+            calendarId=calendar_id,
+            body=event,
+            sendUpdates='all'  # Send email invitations to attendees
+        ).execute()
+
+        result = {
             'success': True,
             'event_id': created_event['id'],
             'event_link': created_event.get('htmlLink'),
@@ -343,6 +354,12 @@ def add_calendar_event(
             'end': created_event['end'].get('dateTime'),
             'calendar_id': calendar_id
         }
+
+        if attendees:
+            result['attendees_invited'] = attendees
+            result['invitations_sent'] = True
+
+        return result
 
     except HttpError as error:
         return {
@@ -449,6 +466,95 @@ def update_calendar_event(
             'error': f'An error occurred: {str(e)}',
             'old_event_id': event_id,
             'calendar_id': calendar_id
+        }
+
+
+def invite_to_event(
+    event_id: str,
+    attendees: list[str],
+    calendar_id: str = 'primary'
+) -> dict:
+    """
+    Add attendees to an existing calendar event. Invitations will be sent via email.
+
+    Args:
+        event_id: The ID of the event to add attendees to (required).
+                  Can be obtained from get_calendar_events().
+        attendees: List of email addresses to invite to the event (required).
+        calendar_id: Calendar ID where the event exists (default: 'primary')
+
+    Returns:
+        dict: Dictionary containing:
+            - success: Boolean indicating if the invitations were sent
+            - event_id: The ID of the event
+            - attendees_added: List of email addresses that were invited
+            - all_attendees: Complete list of all attendees on the event
+            - event_link: Link to the event
+
+    Example:
+        invite_to_event(
+            event_id="abc123def456",
+            attendees=["colleague@example.com", "manager@example.com"]
+        )
+    """
+    try:
+        service = get_calendar_service()
+
+        # Get the existing event
+        event = service.events().get(calendarId=calendar_id, eventId=event_id).execute()
+
+        # Get existing attendees (if any) and add new ones
+        existing_attendees = event.get('attendees', [])
+        existing_emails = {attendee['email'] for attendee in existing_attendees}
+
+        # Add new attendees, avoiding duplicates
+        new_attendees = []
+        for email in attendees:
+            if email not in existing_emails:
+                existing_attendees.append({'email': email})
+                new_attendees.append(email)
+
+        if not new_attendees:
+            return {
+                'success': True,
+                'event_id': event_id,
+                'calendar_id': calendar_id,
+                'message': 'All specified attendees are already invited to this event',
+                'all_attendees': [a['email'] for a in existing_attendees]
+            }
+
+        # Update the event with new attendees
+        event['attendees'] = existing_attendees
+        updated_event = service.events().update(
+            calendarId=calendar_id,
+            eventId=event_id,
+            body=event,
+            sendUpdates='all'  # Send email invitations to new attendees
+        ).execute()
+
+        return {
+            'success': True,
+            'event_id': event_id,
+            'calendar_id': calendar_id,
+            'attendees_added': new_attendees,
+            'all_attendees': [a['email'] for a in updated_event.get('attendees', [])],
+            'event_link': updated_event.get('htmlLink'),
+            'invitations_sent': True
+        }
+
+    except HttpError as error:
+        return {
+            'success': False,
+            'event_id': event_id,
+            'calendar_id': calendar_id,
+            'error': f'An error occurred: {error}'
+        }
+    except Exception as e:
+        return {
+            'success': False,
+            'event_id': event_id,
+            'calendar_id': calendar_id,
+            'error': f'An error occurred: {str(e)}'
         }
 
 

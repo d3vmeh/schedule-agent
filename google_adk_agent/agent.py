@@ -1,6 +1,25 @@
 from google.adk.agents.llm_agent import Agent
+from google.adk.tools import AgentTool
 from .adk_tools import add_calendar_event, get_calendar_events, delete_calendar_event, update_calendar_event, list_calendars, invite_to_event, get_time_info
 
+
+
+sharing_agent = Agent(
+    model='gemini-2.5-flash',
+    name='root_agent',
+    description='A helpful schedule management assistant to help the user manage their calendar and tasks.',
+    instruction=f"""
+    You are a helpful assistant with access to Google Calendar. You can help users invite people to Google Calendar events
+
+    {get_time_info()}
+
+
+    You have access to the following tools to complete the task the user asks you.
+    - invite_to_event() - Add attendees to an existing event and send email invitations
+
+    """,
+    tools = [invite_to_event]
+)
 root_agent = Agent(
     model='gemini-2.5-flash',
     name='root_agent',
@@ -36,5 +55,5 @@ root_agent = Agent(
     When the user asks about their schedule or upcoming events, use get_calendar_events() to retrieve them.
 
     """,
-    tools = [list_calendars, add_calendar_event, get_calendar_events, update_calendar_event, delete_calendar_event, invite_to_event]
+    tools = [list_calendars, add_calendar_event, get_calendar_events, update_calendar_event, delete_calendar_event, AgentTool(sharing_agent)]
 )
